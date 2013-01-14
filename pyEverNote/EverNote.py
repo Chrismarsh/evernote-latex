@@ -83,6 +83,9 @@ class EverNote(object):
         content = self.noteStore.getNoteContent(self.authToken,note.guid)
         return content
     
+    def createNote(self,note):
+        return self.noteStore.createNote(self.authToken,note)
+        
     def add_png_resource(self,note,fname):
             # To include an attachment such as an image in a note, first create a Resource:\
             # for the attachment. At a minimum, the Resource contains the binary attachment

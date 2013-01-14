@@ -1,6 +1,7 @@
 from __future__ import print_function
 #light wrapper around some of the used evernote functions
 from pyEverNote.EverNote import *
+import evernote.edam.type.ttypes as Types
 
 import subprocess
 import re
@@ -10,10 +11,15 @@ import os
 EN = EverNote()
 notes = EN.filterNotesOnTag(['tex'])
 
+debugGUID = EN.getTagGUID('tex-debug')
+
 print('Found ' + str(len(notes.notes)) + ' notes')
 
 for n in notes.notes:
     print ('Note: ' + n.title)
+    if debugGUID in n.tagGuids:
+        debug = True
+    
     content = EN.getNoteContent(n)
     
     eqn_num=1
@@ -42,6 +48,7 @@ for n in notes.notes:
             
             if len(re.findall(r"\n!",log,re.DOTALL)) != 0: #look for lines that start with !
                 error = re.findall(r"\n!(.+?)\n(.+?)\n",log,re.DOTALL)
+                error= error[:][0][0]+error[:][0][1].replace('<recently read>','')
                 raise IOError(error)
             
             s = subprocess.Popen([r'C:\Program Files (x86)\ImageMagick-6.8.1-Q16\convert', '-density', '600',fname+'.pdf','-resize', '20%',fname+'.png'], \
@@ -52,7 +59,7 @@ for n in notes.notes:
             content = content.replace(eqn, '<en-media type="image/png" border="0" vspace="0" hash="'+hash+'" align="middle"/>')
             print('success!')
         except IOError as e:
-            content = content.replace(eqn,'<font color="red">' + eqn + '</font>')
+            content = content.replace(eqn,eqn + '<font color="red">[error:' + str(e) + ']</font>')
             print('error! ',end='')
             print(e)
             
@@ -67,6 +74,11 @@ for n in notes.notes:
         except:
             pass #don't care if the file isn't there
         
+        #if debug:
+                #debug_note = Types.Note()
+                #debug_note.title = 'debug-log-'+n.title
+                #de
+                 
         eqn_num=eqn_num+1
         
     n.content = content
