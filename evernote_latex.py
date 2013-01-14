@@ -1,0 +1,73 @@
+from __future__ import print_function
+#light wrapper around some of the used evernote functions
+from pyEverNote.EverNote import *
+
+import subprocess
+import re
+import os
+
+
+EN = EverNote()
+notes = EN.filterNotesOnTag(['tex'])
+
+print('Found ' + str(len(notes.notes)) + ' notes')
+
+for n in notes.notes:
+    print ('Note: ' + n.title)
+    content = EN.getNoteContent(n)
+    
+    eqn_num=1
+    eqns = re.findall(r"(?<!\\)\$\$.*?(?<!\\)\$\$",content) # regexp from http://stackoverflow.com/a/8485005/410074 may be worth changing to a parser 
+    for eqn in eqns: 
+        print('\tEqn ' + str(eqn_num) + '/'+str(len(eqns)) + '...',end="")
+        
+        f = open(r'tex\base.tex','r')
+        tex = f.read()
+        f.close()
+        tex = tex.replace('$$',eqn[1:-1])
+
+        fname = n.guid + '-' + str(eqn_num)
+        
+        f = open(fname+'.tex','w')
+        f.write(tex)
+        f.close()
+        
+        out = subprocess.Popen(['pdflatex', '-interaction','batchmode',fname],stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate() [0] 
+
+
+        try:
+            f = open(fname+'.log','r')
+            log = f.read()
+            f.close()
+            
+            if len(re.findall(r"\n!",log,re.DOTALL)) != 0: #look for lines that start with !
+                error = re.findall(r"\n!(.+?)\n(.+?)\n",log,re.DOTALL)
+                raise IOError(error)
+            
+            s = subprocess.Popen([r'C:\Program Files (x86)\ImageMagick-6.8.1-Q16\convert', '-density', '600',fname+'.pdf','-resize', '20%',fname+'.png'], \
+                          stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0]             
+            
+            #will fail if the png is not found so don't have to explicitly test
+            hash = EN.add_png_resource(n,fname+'.png')
+            content = content.replace(eqn, '<en-media type="image/png" border="0" vspace="0" hash="'+hash+'" align="middle"/>')
+            print('success!')
+        except IOError as e:
+            content = content.replace(eqn,'<font color="red">' + eqn + '</font>')
+            print('error! ',end='')
+            print(e)
+            
+            
+        #try to clean up whatever we can, but ignore all errors
+        try:
+            os.remove(fname+'.tex')
+            os.remove(fname+'.pdf')
+            os.remove(fname+'.log')
+            os.remove(fname+'.aux')
+            os.remove(fname+'.png')
+        except:
+            pass #don't care if the file isn't there
+        
+        eqn_num=eqn_num+1
+        
+    n.content = content
+    EN.updateNote(n)
