@@ -15,6 +15,7 @@ To use evernote-latex:
 - Python 2.7 (only tested with 2.7)
 - [Evernote SDK for Python](https://github.com/evernote/evernote-sdk-python)
 - Evernote developer [API key](http://dev.evernote.com/documentation/cloud/) (OAuth currently not implimented)
+- [BeautifulSoup](http://www.crummy.com/software/BeautifulSoup/#Download) 
 
 
 In `pyEverNote/` create a file `authToken.py` and add a variable declaration for `devToken` that contains your developer API key. It should look like:
