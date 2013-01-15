@@ -16,6 +16,8 @@
 from __future__ import print_function
 #light wrapper around some of the used evernote functions
 from pyEverNote.EverNote import *
+from pyEverNote.MLStripper import *
+import bs4
 #import evernote.edam.type.ttypes as Types
 
 import subprocess
@@ -38,14 +40,24 @@ for n in notes.notes:
     content = EN.getNoteContent(n)
     
     eqn_num=1
-    eqns = re.findall(r"(?<!\\)\$\$.*?(?<!\\)\$\$",content) # regexp from http://stackoverflow.com/a/8485005/410074 may be worth changing to a parser 
+    
+    
+    eqns = re.findall(r"(?<!\\)\$\$.*?(?<!\\)\$\$",content,re.DOTALL) # regexp from http://stackoverflow.com/a/8485005/410074 may be worth changing to a parser 
     for eqn in eqns: 
+        
+        ##clean up the content. & gets turned into &amp;  
+        
+        #eqn_cln = eqn_cln.replace('<br clear="none"/>','')
+        #eqn_cln = eqn_cln.replace('<p>','')
+        #eqn_cln = eqn_cln.replace('</p>','')
+        eqn_cln = html_to_text(eqn)
+        eqn_cln = eqn_cln.replace('&amp;','&')
         print('\tEqn ' + str(eqn_num) + '/'+str(len(eqns)) + '...',end="")
         
         f = open(r'tex\base.tex','r')
         tex = f.read()
         f.close()
-        tex = tex.replace('$$',eqn[1:-1])
+        tex = tex.replace('$$',eqn_cln[1:-1])
 
         fname = n.guid + '-' + str(eqn_num)
         
@@ -66,7 +78,7 @@ for n in notes.notes:
                 error= error[:][0][0]+error[:][0][1].replace('<recently read>','')
                 raise IOError(error)
             
-            s = subprocess.Popen([r'convert', '-density', '600',fname+'.pdf','-resize', '20%',fname+'.png'], \
+            s = subprocess.Popen([r'C:\Program Files (x86)\ImageMagick-6.8.1-Q16\convert', '-density', '600',fname+'.pdf','-resize', '20%',fname+'.png'], \
                           stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0]             
             
             #will fail if the png is not found so don't have to explicitly test
@@ -95,6 +107,14 @@ for n in notes.notes:
                 #de
                  
         eqn_num=eqn_num+1
-        
-    n.content = content
+    #off chance we've clobbered some HTML tags that started outside $$ and ended in our equation, try to fix it!
+    
+    content = str(bs4.BeautifulSoup(content))
+    
+    #remove the body and html that bs4 helpfully added back
+    content = content.replace('<body>','')
+    content = content.replace('</body>','')
+    content = content.replace('<html>','')
+    content = content.replace('</html>','')
+    n.content = '<?xml version="1.0" encoding="UTF-8"?>' + content
     EN.updateNote(n)
