@@ -28,7 +28,7 @@ The default settings are to use a sandbox environment. This is controlled by set
 
 to
 
->`EN = EverNote(sandbox=False)`
+>`EN = EverNote(isSandbox=False)`
 
 If you do this, apply to have your API key enabled on the production servers.
 

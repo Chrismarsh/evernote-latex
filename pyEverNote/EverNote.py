@@ -38,7 +38,7 @@ class EverNote(object):
             # https://www.evernote.com/api/DeveloperToken.action
             evernoteHost = "sandbox.evernote.com"
         else:
-            evernoteHost = "evernote.com"
+            evernoteHost = "www.evernote.com"
         
         self.isSandbox = isSandbox   
         userStoreUri = "https://" + evernoteHost + "/edam/user"            
@@ -48,7 +48,7 @@ class EverNote(object):
         
         self.userStore = UserStore.Client(userStoreProtocol)
         
-        versionOK = self.userStore.checkVersion("Evernote EDAMTest (Python)",
+        versionOK = self.userStore.checkVersion("everlatex",
                                            UserStoreConstants.EDAM_VERSION_MAJOR,
                                            UserStoreConstants.EDAM_VERSION_MINOR)
         

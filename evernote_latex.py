@@ -25,7 +25,7 @@ import re
 import os
 
 
-EN = EverNote()
+EN = EverNote(isSandbox=False)
 notes = EN.filterNotesOnTag(['tex'])
 
 debugGUID = EN.getTagGUID('tex-debug')
@@ -97,6 +97,7 @@ for n in notes.notes:
             
         #try to clean up whatever we can, but ignore all errors
         try:
+
             os.remove(fname+'.tex')
             os.remove(fname+'.pdf')
             os.remove(fname+'-crop.pdf')
