@@ -18,7 +18,7 @@ from __future__ import print_function
 from pyEverNote.EverNote import *
 from pyEverNote.MLStripper import *
 import bs4
-#import evernote.edam.type.ttypes as Types
+
 
 import subprocess
 import re
@@ -46,10 +46,6 @@ for n in notes.notes:
     for eqn in eqns: 
         
         ##clean up the content. & gets turned into &amp;  
-        
-        #eqn_cln = eqn_cln.replace('<br clear="none"/>','')
-        #eqn_cln = eqn_cln.replace('<p>','')
-        #eqn_cln = eqn_cln.replace('</p>','')
         eqn_cln = html_to_text(eqn)
         eqn_cln = eqn_cln.replace('&amp;','&')
         print('\tEqn ' + str(eqn_num) + '/'+str(len(eqns)) + '...',end="")
@@ -78,15 +74,20 @@ for n in notes.notes:
                 error= error[:][0][0]+error[:][0][1].replace('<recently read>','')
                 raise IOError(error)
             
-            s = subprocess.Popen([r'convert', '-density', '720','-resize','18%','-morphology', 'Thicken', 'ConvexHull',fname+'.pdf',fname+'.png'], \
-                                      stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0]             
-
-            #s = subprocess.Popen([r'C:\Program Files (x86)\ImageMagick-6.8.1-Q16\convert', '-density', '600',fname+'.pdf','-resize', '20%',fname+'.png'], \
-                          #stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0]             
+            
+            s = subprocess.Popen([r'C:\cygwin\bin\perl','pdfcrop.pl', '-hires',fname+'.pdf'], stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0]                
+            
+            if not 'page written on' in s:
+                raise IOError(s)
+            
+            s = subprocess.Popen([r'C:\Program Files (x86)\ImageMagick-6.8.1-Q16\convert', '-density', '720','-resize','18%',\
+                                  '-morphology', 'Thicken', 'ConvexHull',fname+'-crop.pdf',fname+'.png'], \
+                                    stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0] 
+ 
             
             #will fail if the png is not found so don't have to explicitly test
             hash = EN.add_png_resource(n,fname+'.png')
-            content = content.replace(eqn, '<en-media type="image/png" border="0" vspace="0" hash="'+hash+'" align="absmiddle"/>')
+            content = content.replace(eqn, '<en-media type="image/png" style="vertical-align: middle;" hash="'+hash+'"/>')
             print('success!')
         except IOError as e:
             content = content.replace(eqn,eqn + '<font color="red">[error:' + str(e) + ']</font>')
@@ -98,6 +99,7 @@ for n in notes.notes:
         try:
             os.remove(fname+'.tex')
             os.remove(fname+'.pdf')
+            os.remove(fname+'-crop.pdf')
             os.remove(fname+'.log')
             os.remove(fname+'.aux')
             os.remove(fname+'.png')
@@ -110,8 +112,8 @@ for n in notes.notes:
                 #de
                  
         eqn_num=eqn_num+1
+        
     #off chance we've clobbered some HTML tags that started outside $$ and ended in our equation, try to fix it!
-    
     content = str(bs4.BeautifulSoup(content))
     
     #remove the body and html that bs4 helpfully added back
@@ -119,6 +121,7 @@ for n in notes.notes:
     content = content.replace('</body>','')
     content = content.replace('<html>','')
     content = content.replace('</html>','')
+
     if not "<?xml" in content:
         content = '<?xml version="1.0" encoding="UTF-8"?>' + content
     n.content = content

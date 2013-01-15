@@ -2,7 +2,7 @@
 
 Evernote-latex is a project that tries to make latex integration into Evernote simpler. While there is atleast one service I could find that does something similar, it requires handing over your entire evernote library to a 3rd party. 
 
-What this does is convert any section enclosed in a  $$...$$ section into a Latex rendered section (.png). An example is given below:
+What this does is convert any section enclosed in $$...$$ into a Latex rendered section (.png). An example is given below:
 
 ![](https://raw.github.com/Chrismarsh/evernote-latex/master/example.png)
 
@@ -16,6 +16,8 @@ To use evernote-latex:
 - [Evernote SDK for Python](https://github.com/evernote/evernote-sdk-python)
 - Evernote developer [API key](http://dev.evernote.com/documentation/cloud/) (OAuth currently not implimented)
 - [BeautifulSoup](http://www.crummy.com/software/BeautifulSoup/#Download) 
+- Perl
+- [GhostScript](http://pages.cs.wisc.edu/~ghost/)
 
 
 In `pyEverNote/` create a file `authToken.py` and add a variable declaration for `devToken` that contains your developer API key. It should look like:
@@ -30,9 +32,14 @@ to
 
 If you do this, apply to have your API key enabled on the production servers.
 
+There are hardcodes for the `perl` and `gs` directories -- **fix these before running**. This will be fixed in a next version.
+
 ## Usage ##
-To use, mark any note with the tag 'tex'. It will then be processed
+To use, mark any note with the tag 'tex'. It will then be processed.
+
 Then run ` python evernote-latex.py`
+
+Sections in $$...$$ will be processed. The $$ cannot have a newline after it and the start of the equation.
 
 ## Todo and caveats ##
 - Remove 'tex' tag after processing
@@ -40,3 +47,4 @@ Then run ` python evernote-latex.py`
 - Ability to undo texification
 - Images are resized for font 11pt.
 - Images are a bit blury due to the resizing. 
+- Evernote web seems to have trouble veritcally-aligning the images properly, but the desktop application does not.
