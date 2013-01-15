@@ -86,7 +86,7 @@ for n in notes.notes:
             
             #will fail if the png is not found so don't have to explicitly test
             hash = EN.add_png_resource(n,fname+'.png')
-            content = content.replace(eqn, '<en-media type="image/png" hash="'+hash+'" align="middle"/>')
+            content = content.replace(eqn, '<en-media type="image/png" border="0" vspace="0" hash="'+hash+'" align="absmiddle"/>')
             print('success!')
         except IOError as e:
             content = content.replace(eqn,eqn + '<font color="red">[error:' + str(e) + ']</font>')
@@ -119,6 +119,7 @@ for n in notes.notes:
     content = content.replace('</body>','')
     content = content.replace('<html>','')
     content = content.replace('</html>','')
-    if content[1:5] !="<?xml":
-        n.content = '<?xml version="1.0" encoding="UTF-8"?>' + content
+    if not "<?xml" in content:
+        content = '<?xml version="1.0" encoding="UTF-8"?>' + content
+    n.content = content
     EN.updateNote(n)
