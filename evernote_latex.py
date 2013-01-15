@@ -78,12 +78,15 @@ for n in notes.notes:
                 error= error[:][0][0]+error[:][0][1].replace('<recently read>','')
                 raise IOError(error)
             
-            s = subprocess.Popen([r'C:\Program Files (x86)\ImageMagick-6.8.1-Q16\convert', '-density', '600',fname+'.pdf','-resize', '20%',fname+'.png'], \
-                          stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0]             
+            s = subprocess.Popen([r'convert', '-density', '720','-resize','18%','-morphology', 'Thicken', 'ConvexHull',fname+'.pdf',fname+'.png'], \
+                                      stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0]             
+
+            #s = subprocess.Popen([r'C:\Program Files (x86)\ImageMagick-6.8.1-Q16\convert', '-density', '600',fname+'.pdf','-resize', '20%',fname+'.png'], \
+                          #stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0]             
             
             #will fail if the png is not found so don't have to explicitly test
             hash = EN.add_png_resource(n,fname+'.png')
-            content = content.replace(eqn, '<en-media type="image/png" border="0" vspace="0" hash="'+hash+'" align="middle"/>')
+            content = content.replace(eqn, '<en-media type="image/png" hash="'+hash+'" align="middle"/>')
             print('success!')
         except IOError as e:
             content = content.replace(eqn,eqn + '<font color="red">[error:' + str(e) + ']</font>')
@@ -116,5 +119,6 @@ for n in notes.notes:
     content = content.replace('</body>','')
     content = content.replace('<html>','')
     content = content.replace('</html>','')
-    n.content = '<?xml version="1.0" encoding="UTF-8"?>' + content
+    if content[1:5] !="<?xml":
+        n.content = '<?xml version="1.0" encoding="UTF-8"?>' + content
     EN.updateNote(n)
