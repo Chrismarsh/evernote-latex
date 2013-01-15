@@ -4,7 +4,7 @@ Evernote-latex is a project that tries to make latex integration into Evernote s
 
 What this does is convert any section enclosed in a  $$...$$ section into a Latex rendered section (.png). An example is given below:
 
-![](example.png)
+![](https://raw.github.com/Chrismarsh/evernote-latex/master/example.png)
 
 
 ## Installation ##
