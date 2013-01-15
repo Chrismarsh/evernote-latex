@@ -16,7 +16,7 @@
 from __future__ import print_function
 #light wrapper around some of the used evernote functions
 from pyEverNote.EverNote import *
-import evernote.edam.type.ttypes as Types
+#import evernote.edam.type.ttypes as Types
 
 import subprocess
 import re
@@ -66,7 +66,7 @@ for n in notes.notes:
                 error= error[:][0][0]+error[:][0][1].replace('<recently read>','')
                 raise IOError(error)
             
-            s = subprocess.Popen([r'C:\Program Files (x86)\ImageMagick-6.8.1-Q16\convert', '-density', '600',fname+'.pdf','-resize', '20%',fname+'.png'], \
+            s = subprocess.Popen([r'convert', '-density', '600',fname+'.pdf','-resize', '20%',fname+'.png'], \
                           stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0]             
             
             #will fail if the png is not found so don't have to explicitly test
