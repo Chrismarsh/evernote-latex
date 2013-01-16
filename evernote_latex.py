@@ -24,18 +24,51 @@ import subprocess
 import re
 import os
 
+#Setup our evernote wrapper
+EN = EverNote(isSandbox=True)
 
-EN = EverNote(isSandbox=False)
-notes = EN.filterNotesOnTag(['tex'])
+#find the tags to process
+try:
+    texify_notes = EN.filterNotesOnTag(['tex'])
+    texify_undo = EN.filterNotesOnTag(['tex.undo'])
+except IOError:
+    print('No tags found, exiting...')
+    exit() #no tags to process, exit
 
-texGUID = EN.getTagGUID(['tex'])[0]
+#Do we have any notes to undo?
+for n in texify_undo.notes:
+    print ('Reverting note ' + n.title+': ',end="")
+    i=0
+    content = EN.getNoteContent(n) #get the content
+    rGUIDS = [] #resources guids to remove
+    for r in n.resources:
+        #check if this is a texified resource
+        res = EN.getResourceAppData(r.guid)
+        try:
+            data = res.fullMap[EN.consumerKey] #get our appdata
+            eqn,hash = data.split('<;;;>') #get our eqn and hash from our saved meta data
+            bs = bs4.BeautifulSoup(content) #use bs to pull out the en-media tags
+            for en_media in bs.findAll('en-media'):
+                if hash in str(en_media):#is this our hash? replace it
+                    #bs4 mixes up the attribute order, so we can hardcode the reorder as it's always like this (famous last words), then replace on 
+                    tmp_tag = '<en-media style="' + en_media['style'] +'" hash="' + en_media['hash'] +'" type="' + en_media['type'] + '"></en-media>' 
+                    content = content.replace(tmp_tag,eqn.replace('&','&amp;'))
+                    rGUIDS.append(r.guid)
+                    i=i+1
+        except:
+            pass #no dice, keep going
+    
+    n = EN.removeResourcesFromNote(n,rGUIDS)
+    n.content = content
+    n = EN.removeTagsFromNote(n,['tex.undo'])
+    EN.updateNote(n)
+    print(str(i)+'/'+str(i+len(n.resources))+' reverted.')
 
-
-print('Found ' + str(len(notes.notes)) + ' notes')
-
-for n in notes.notes:
-    print ('Note: ' + n.title)
-
+for n in texify_notes.notes:
+    print ('Texifying note: ' + n.title)
+    
+    eqn_hash ={}
+    
     content = EN.getNoteContent(n)
     
     eqn_num=1
@@ -47,7 +80,7 @@ for n in notes.notes:
         ##clean up the content. & gets turned into &amp;  
         eqn_cln = html_to_text(eqn)
         eqn_cln = eqn_cln.replace('&amp;','&') 
-        eqn_cln = eqn_cln.replace('&nbsp;','') # because we wanted to save the &amp above, we unfortunately preserve the nbsp that screws up latex. So remove it
+        eqn_cln = eqn_cln.replace('&nbsp;',' ') # because we wanted to save the &amp above, we unfortunately preserve the nbsp that screws up latex. So remove it
         print('\tEqn ' + str(eqn_num) + '/'+str(len(eqns)) + '...',end="")
         
         f = open(r'tex\base.tex','r')
@@ -86,8 +119,10 @@ for n in notes.notes:
  
             
             #will fail if the png is not found so don't have to explicitly test
-            hash = EN.add_png_resource(n,fname+'.png')
+            hash,md5 = EN.add_png_resource(n,fname+'.png')
+            eqn_hash[md5]=eqn_cln+'<;;;>'+hash
             content = content.replace(eqn, '<en-media type="image/png" style="vertical-align: middle;" hash="'+hash+'"/>')
+
             print('success!')
         except IOError as e:
             content = content.replace(eqn,eqn + '<font color="red">[error:' + str(e) + ']</font>')
@@ -122,6 +157,11 @@ for n in notes.notes:
         content = '<?xml version="1.0" encoding="UTF-8"?>' + content
     n.content = content
 
-    n.tagGuids = [t for t in n.tagGuids if t != texGUID] #remove the tex tag
-    
+    EN.removeTagsFromNote(n,['tex'])
+
     EN.updateNote(n)
+    
+    #to add meta data, we need the note guid, which we only get after an update. so update, query the resources (we known the hashes)
+    #and then update the meta data
+    for h in eqn_hash:
+        EN.setResourceAppDataByHash(n.guid,h,eqn_hash[h])

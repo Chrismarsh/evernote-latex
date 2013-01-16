@@ -35,7 +35,7 @@ If you do this, apply to have your API key enabled on the production servers. Th
 There are hardcodes for the `perl` and `gs` directories -- **fix these before running**. This will be fixed in a next version.
 
 ## Usage ##
-To use, mark sections of text in $$...$$ to be processed. Then add the tag 'tex' to the note. After processing, the 'tex' tag will be removed. Errors will be marked in red text with an explanation of the error (pdflatex output).
+To use, mark sections of text in $$...$$ to be processed. Then add the tag 'tex' to the note. After processing, the 'tex' tag will be removed. Errors will be marked in red text with an explanation of the error (pdflatex output). To undo the texification, tag the note with 'tex.undo'. If a note is tagged with both 'tex' and 'tex.undo', the 'tex.undo' will take precedence. Texification will still be run, potentially undoing a 'tex.undo'.
 
 To run, execute `python evernote-latex.py`
 
@@ -44,7 +44,7 @@ To run, execute `python evernote-latex.py`
 ## Todo and caveats ##
 - <del>Remove 'tex' tag after processing</del>
 - Poll for changes or register for webhooks
-- Ability to undo texification
+- <del>Ability to undo texification</del>
 - Images are resized for font 11pt.
 - Images are a bit blury due to the resizing. 
 - Evernote web seems to have trouble veritcally-aligning the images properly, but the desktop application does not.

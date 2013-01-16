@@ -40,7 +40,7 @@ class EverNote(object):
         else:
             evernoteHost = "www.evernote.com"
             self.authToken = devToken
-        
+        self.consumerKey = consumerKey
         self.isSandbox = isSandbox   
         userStoreUri = "https://" + evernoteHost + "/edam/user"            
             
@@ -91,7 +91,7 @@ class EverNote(object):
         filter = NoteStore.NoteFilter()
         filter.tagGuids = self.getTagGUID(tag)
         if filter.tagGuids  ==[]:
-            raise "Tag not found"
+            raise IOError("Tag not found")
         
         notes = self.noteStore.findNotes(self.authToken,filter,offset,maxReturn)     
         return notes    
@@ -102,7 +102,37 @@ class EverNote(object):
     
     def createNote(self,note):
         return self.noteStore.createNote(self.authToken,note)
+
+    def setResourceAppData(self, resourceGUID,  value):
+        self.noteStore.setResourceApplicationDataEntry(self.authToken,resourceGUID,self.consumerKey,value)
         
+    def setResourceAppDataByHash(self, noteGUID, hash, value):
+        resource = self.noteStore.getResourceByHash(self.authToken,noteGUID,hash,False,False,False)
+        self.setResourceAppData(resource.guid, value )
+        
+        
+    def getResourceAppData(self,resourceGUID):
+        data = self.noteStore.getResourceApplicationData(self.authToken,resourceGUID)
+        return data
+    
+    #returns modified note
+    def removeTagsFromNote(self,note,tags):
+        guids = self.getTagGUID(tags)
+        for guid in guids:
+            note.tagGuids = [t for t in note.tagGuids if t != guid] #remove the tag
+        return note
+    
+    def removeResourcesFromNote(self,note,resourceGUIDs):
+        for r in note.resources:
+            for g in resourceGUIDs:
+                if r.guid == g:
+                    try:
+                        note.resources.remove(r)
+                    except ValueError as e:
+                        pass
+        
+        return note
+
     def add_png_resource(self,note,fname):
             # To include an attachment such as an image in a note, first create a Resource:\
             # for the attachment. At a minimum, the Resource contains the binary attachment
@@ -121,18 +151,13 @@ class EverNote(object):
             resource = Types.Resource()
             resource.mime = 'image/png'
             resource.data = data
-            
-            # Now, add the new Resource to the note's list of resources
-            #note.resources = [resource]
-            
-            # To display the Resource as part of the note's content, include an <en-media>
-            # tag in the note's ENML content. The en-media tag identifies the corresponding
-            # Resource using the MD5 hash.
+
             hashHex = binascii.hexlify(hash)
             
             if note.resources == None:
                 note.resources =[]
             note.resources.append(resource)
-            return hashHex   
+            return hashHex,md5.digest()
+        
     def updateNote(self,note):
         self.noteStore.updateNote(self.authToken,note)
