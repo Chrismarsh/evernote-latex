@@ -23,6 +23,9 @@ To use evernote-latex:
 In `pyEverNote/` create a file `authToken.py` and add a variable declaration for `sandbox_devToken` that contains your developer sandbox API key. It should look like:
 >`sadnbox_devToken = "S=s1:[...]3d"`
 
+Then add a line for your consumerkey. This is required for storing the metadata to undo texification.
+>`consumerKey=...`
+
 The default settings are to use a sandbox environment. This is controlled by setting
 >`EN = EverNote()`
 
