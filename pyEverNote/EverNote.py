@@ -28,8 +28,7 @@ from authToken import *
 
 class EverNote(object):
     def __init__(self,isSandbox=True):
-        self.authToken = devToken
-        
+
         #defaults to the sanbox to limit damage
         if isSandbox:
             # Initial development is performed on our sandbox server. To use the production
@@ -37,8 +36,10 @@ class EverNote(object):
             # developer token above with a token from
             # https://www.evernote.com/api/DeveloperToken.action
             evernoteHost = "sandbox.evernote.com"
+            self.authToken = sandbox_devToken
         else:
             evernoteHost = "www.evernote.com"
+            self.authToken = devToken
         
         self.isSandbox = isSandbox   
         userStoreUri = "https://" + evernoteHost + "/edam/user"            

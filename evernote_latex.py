@@ -28,15 +28,14 @@ import os
 EN = EverNote(isSandbox=False)
 notes = EN.filterNotesOnTag(['tex'])
 
-debugGUID = EN.getTagGUID('tex-debug')
+texGUID = EN.getTagGUID(['tex'])[0]
+
 
 print('Found ' + str(len(notes.notes)) + ' notes')
 
 for n in notes.notes:
     print ('Note: ' + n.title)
-    if debugGUID in n.tagGuids:
-        debug = True
-    
+
     content = EN.getNoteContent(n)
     
     eqn_num=1
@@ -47,7 +46,8 @@ for n in notes.notes:
         
         ##clean up the content. & gets turned into &amp;  
         eqn_cln = html_to_text(eqn)
-        eqn_cln = eqn_cln.replace('&amp;','&')
+        eqn_cln = eqn_cln.replace('&amp;','&') 
+        eqn_cln = eqn_cln.replace('&nbsp;','') # because we wanted to save the &amp above, we unfortunately preserve the nbsp that screws up latex. So remove it
         print('\tEqn ' + str(eqn_num) + '/'+str(len(eqns)) + '...',end="")
         
         f = open(r'tex\base.tex','r')
@@ -106,12 +106,7 @@ for n in notes.notes:
             os.remove(fname+'.png')
         except:
             pass #don't care if the file isn't there
-        
-        #if debug:
-                #debug_note = Types.Note()
-                #debug_note.title = 'debug-log-'+n.title
-                #de
-                 
+
         eqn_num=eqn_num+1
         
     #off chance we've clobbered some HTML tags that started outside $$ and ended in our equation, try to fix it!
@@ -126,4 +121,7 @@ for n in notes.notes:
     if not "<?xml" in content:
         content = '<?xml version="1.0" encoding="UTF-8"?>' + content
     n.content = content
+
+    n.tagGuids = [t for t in n.tagGuids if t != texGUID] #remove the tex tag
+    
     EN.updateNote(n)
