@@ -21,6 +21,9 @@ import evernote.edam.error.ttypes as Errors
 
 import bs4
 
+perl_path=r'C:\cygwin\bin\perl'
+im_path=r'C:\Program Files (x86)\ImageMagick-6.8.1-Q16\convert'
+latex_path=r'pdflatex'
 
 import subprocess
 import re
@@ -109,7 +112,7 @@ if texify_notes:
             f.write(tex)
             f.close()
             
-            out = subprocess.Popen(['pdflatex', '-interaction','batchmode',fname],stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate() [0] 
+            out = subprocess.Popen([latex_path, '-interaction','batchmode',fname],stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate() [0] 
     
     
             try:
@@ -123,12 +126,12 @@ if texify_notes:
                     raise IOError(error)
                 
                 
-                s = subprocess.Popen([r'C:\cygwin\bin\perl','pdfcrop.pl', '-hires',fname+'.pdf'], stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0]                
+                s = subprocess.Popen([perl_path,'pdfcrop.pl', '-hires',fname+'.pdf'], stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0]                
                 
                 if not 'page written on' in s:
                     raise IOError(s)
                 
-                s = subprocess.Popen([r'C:\Program Files (x86)\ImageMagick-6.8.1-Q16\convert', '-density', '720','-resize','18%',\
+                s = subprocess.Popen([im_path, '-density', '720','-resize','18%',\
                                       '-morphology', 'Thicken', 'ConvexHull',fname+'-crop.pdf',fname+'.png'], \
                                         stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0] 
      
