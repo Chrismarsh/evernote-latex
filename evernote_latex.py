@@ -154,17 +154,11 @@ if texify_notes:
             
         #off chance we've clobbered some HTML tags that started outside $$ and ended in our equation, try to fix it!
         content = str(bs4.BeautifulSoup(content,"xml"))
-        
-        #remove the body and html that bs4 helpfully added back
-        #content = content.replace('<body>','')
-        #content = content.replace('</body>','')
-        #content = content.replace('<html>','')
-        #content = content.replace('</html>','')
-        #content = content.replace('<head>','')
-        #content = content.replace('</head>','')    
-                
+ 
+        #just in case, but should have been added by bs4 if missing
         if not "<?xml" in content:
             content = '<?xml version="1.0" encoding="UTF-8"?>' + content
+            
         n.content = content
     
         EN.removeTagsFromNote(n,['tex'])
