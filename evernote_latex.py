@@ -43,25 +43,32 @@ if texify_undo:
         i=0
         content = EN.getNoteContent(n) #get the content
         rGUIDS = [] #resources guids to remove
+        bs = bs4.BeautifulSoup(content,'xml') #use bs to pull out the en-media tags
+        
+        #loop over all the resources, some may not be ours
         for r in n.resources:
             #check if this is a texified resource
             res = EN.getResourceAppData(r.guid)
             try:
                 data = res.fullMap[EN.consumerKey] #get our appdata
                 eqn,hash = data.split('<;;;>') #get our eqn and hash from our saved meta data
-                bs = bs4.BeautifulSoup(content) #use bs to pull out the en-media tags
-                for en_media in bs.findAll('en-media'):
-                    if hash in str(en_media):#is this our hash? replace it
+
+                en_media = bs.find(hash=hash)
+                if en_media: #place the tag with the eqn
+                    en_media.replaceWith(eqn.replace('&','&amp;'))
+                    rGUIDS.append(r.guid)
+                    i=i+1
+                 
+                #for en_media in bs.findAll('en-media'):
+                    #if hash in str(en_media):#is this our hash? replace it
                         #bs4 mixes up the attribute order, so we can hardcode the reorder as it's always like this (famous last words), then replace on 
-                        tmp_tag = '<en-media style="' + en_media['style'] +'" hash="' + en_media['hash'] +'" type="' + en_media['type'] + '"></en-media>' 
-                        content = content.replace(tmp_tag,eqn.replace('&','&amp;'))
-                        rGUIDS.append(r.guid)
-                        i=i+1
-            except:
+                        #tmp_tag = '<en-media style="' + en_media['style'] +'" hash="' + en_media['hash'] +'" type="' + en_media['type'] + '"></en-media>' 
+                        #content = content.replace(tmp_tag,eqn.replace('&','&amp;'))
+            except:           
                 pass #no dice, keep going
         
         n = EN.removeResourcesFromNote(n,rGUIDS)
-        n.content = content
+        n.content = str(bs)#content
         n = EN.removeTagsFromNote(n,['tex.undo'])
         EN.updateNote(n)
         print(str(i)+'/'+str(i+len(n.resources))+' reverted.')
