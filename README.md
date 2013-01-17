@@ -40,9 +40,10 @@ There are hardcodes for the `perl` and `gs` directories -- **fix these before ru
 ## Usage ##
 To use, mark sections of text in $$...$$ to be processed. Then add the tag 'tex' to the note. After processing, the 'tex' tag will be removed. Errors will be marked in red text with an explanation of the error (pdflatex output). To undo the texification, tag the note with 'tex.undo'. If a note is tagged with both 'tex' and 'tex.undo', the 'tex.undo' will take precedence. Texification will still be run, potentially undoing a 'tex.undo'.
 
-To run, execute `python evernote-latex.py`
+To run, execute `python evernote-latex.py`.
 
-
+## Troubleshooting ##
+- pdfcrop.pl seems to have trouble finding gs on windows. Even when it's on the path, renaming gswin32c to gs seems to solve the search issues.
 
 ## Todo and caveats ##
 - <del>Remove 'tex' tag after processing</del>

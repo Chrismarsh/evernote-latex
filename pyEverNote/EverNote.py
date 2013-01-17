@@ -21,6 +21,7 @@ import evernote.edam.userstore.constants as UserStoreConstants
 import evernote.edam.notestore.NoteStore as NoteStore
 import evernote.edam.type.ttypes as Types
 
+
 import hashlib
 import binascii
 
@@ -82,7 +83,8 @@ class EverNote(object):
         filter = NoteStore.NoteFilter()
         filter.tagGuids = tagGUID
         if filter.tagGuids  ==[]:
-            raise "Tag not found"        
+            return []
+            #raise "Tag not found"        
         notes = self.noteStore.findNotes(self.authToken,filter,offset,maxReturn)    
         return notes
     
@@ -91,7 +93,8 @@ class EverNote(object):
         filter = NoteStore.NoteFilter()
         filter.tagGuids = self.getTagGUID(tag)
         if filter.tagGuids  ==[]:
-            raise IOError("Tag not found")
+            return []
+            #raise IOError("Tag not found")
         
         notes = self.noteStore.findNotes(self.authToken,filter,offset,maxReturn)     
         return notes    
