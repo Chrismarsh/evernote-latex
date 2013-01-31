@@ -25,7 +25,7 @@ import evernote.edam.type.ttypes as Types
 import hashlib
 import binascii
 
-from authToken import *
+from . import authToken
 
 class EverNote(object):
     def __init__(self,isSandbox=True):
@@ -37,11 +37,11 @@ class EverNote(object):
             # developer token above with a token from
             # https://www.evernote.com/api/DeveloperToken.action
             evernoteHost = "sandbox.evernote.com"
-            self.authToken = sandbox_devToken
+            self.authToken = authToken.sandbox_devToken
         else:
             evernoteHost = "www.evernote.com"
-            self.authToken = devToken
-        self.consumerKey = consumerKey
+            self.authToken = authToken.devToken
+        self.consumerKey = authToken.consumerKey
         self.isSandbox = isSandbox   
         userStoreUri = "https://" + evernoteHost + "/edam/user"            
             

@@ -18,7 +18,7 @@ from __future__ import print_function
 from pyEverNote.EverNote import *
 from pyEverNote.MLStripper import *
 import evernote.edam.error.ttypes as Errors
-
+import HTMLParser
 import bs4
 
 perl_path=r'C:\cygwin\bin\perl'
@@ -81,7 +81,7 @@ try:
 except:
     print('No tex to do')
 
-if texify_notes:
+if texify_notes: #incase the tag has never been used
     for n in texify_notes.notes:
         print ('Texifying note: ' + n.title)
         
@@ -97,14 +97,24 @@ if texify_notes:
             
             ##clean up the content. & gets turned into &amp;  
             eqn_cln = html_to_text(eqn)
-            eqn_cln = eqn_cln.replace('&amp;','&') 
+            
+            #this one seems to be a bit of an edge case, just get rid of it
             eqn_cln = eqn_cln.replace('&nbsp;',' ') # because we wanted to save the &amp above, we unfortunately preserve the nbsp that screws up latex. So remove it
+            
+            #all the rest o the html symbols, convert back to ascii
+            h= HTMLParser.HTMLParser()
+            eqn_cln = h.unescape(eqn_cln)
+
             print('\tEqn ' + str(eqn_num) + '/'+str(len(eqns)) + '...',end="")
             
             f = open(r'tex\base.tex','r')
             tex = f.read()
             f.close()
-            tex = tex.replace('$$',eqn_cln[1:-1])
+            
+            #remove the extra $ on each end
+            idx1 = eqn_cln.find('$')
+            idx2 = eqn_cln.rfind('$')
+            tex = tex.replace('$$',eqn_cln[idx1+1:idx2])
     
             fname = n.guid + '-' + str(eqn_num)
             
@@ -123,6 +133,7 @@ if texify_notes:
                 if len(re.findall(r"\n!",log,re.DOTALL)) != 0: #look for lines that start with !
                     error = re.findall(r"\n!(.+?)\n(.+?)\n",log,re.DOTALL)
                     error= error[:][0][0]+error[:][0][1].replace('<recently read>','')
+                    error = error.replace('<inserted text>','') #confuses the hell out of poor bs4
                     raise IOError(error)
                 
                 
